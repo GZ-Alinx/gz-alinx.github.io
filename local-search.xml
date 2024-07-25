@@ -4,7 +4,7 @@
   
   
   <entry>
-    <title>prometheus监控</title>
+    <title>02-prometheus-server部署</title>
     <link href="/2024/07/25/prometheus-server%E9%83%A8%E7%BD%B2/"/>
     <url>/2024/07/25/prometheus-server%E9%83%A8%E7%BD%B2/</url>
     
@@ -42,7 +42,7 @@
   
   
   <entry>
-    <title>prometheus监控</title>
+    <title>01-prometheus监控基础理论</title>
     <link href="/2024/07/25/prometheus%E7%9B%91%E6%8E%A7%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA/"/>
     <url>/2024/07/25/prometheus%E7%9B%91%E6%8E%A7%E5%9F%BA%E7%A1%80%E7%90%86%E8%AE%BA/</url>
     
