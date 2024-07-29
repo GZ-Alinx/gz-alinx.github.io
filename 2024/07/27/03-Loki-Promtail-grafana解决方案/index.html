@@ -1,0 +1,784 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=light>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="雪落星辰">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Loki-Promtail-grafana解决方案一. 什么是Loki日志系统？爱知县Loki是受Prometheus启发由Grafana Labs团队开源的水平可扩展，高度可用的多租户日志聚合系统。 开发语言: Google Go。它的设计具有很高的成本效益，并且易于操作。使用标签来作为索引，而不是对全文进行检索，也就是说，你通过这些标签既可以查询日志的内容也可以查询到监控的数据签，极大地降低了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="03-Loki-Promtail-grafana解决方案">
+<meta property="og:url" content="https://vlog.pubyg.com/2024/07/27/03-Loki-Promtail-grafana%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="雪落星辰">
+<meta property="og:description" content="Loki-Promtail-grafana解决方案一. 什么是Loki日志系统？爱知县Loki是受Prometheus启发由Grafana Labs团队开源的水平可扩展，高度可用的多租户日志聚合系统。 开发语言: Google Go。它的设计具有很高的成本效益，并且易于操作。使用标签来作为索引，而不是对全文进行检索，也就是说，你通过这些标签既可以查询日志的内容也可以查询到监控的数据签，极大地降低了">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-07-27T04:53:50.000Z">
+<meta property="article:modified_time" content="2024-07-29T09:42:25.375Z">
+<meta property="article:author" content="雪落星辰">
+<meta property="article:tag" content="原创">
+<meta property="article:tag" content="日志系统">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>03-Loki-Promtail-grafana解决方案 - 雪落星辰</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"vlog.pubyg.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":"fea4bef4cfe5dcd81d674d2d3a69ea21","google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+    <!-- Baidu Analytics -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?fea4bef4cfe5dcd81d674d2d3a69ea21";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>雪落星辰</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="03-Loki-Promtail-grafana解决方案"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-27 12:53" pubdate>
+          2024年7月27日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          20 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">03-Loki-Promtail-grafana解决方案</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="Loki-Promtail-grafana解决方案"><a href="#Loki-Promtail-grafana解决方案" class="headerlink" title="Loki-Promtail-grafana解决方案"></a>Loki-Promtail-grafana解决方案</h1><h2 id="一-什么是Loki日志系统？爱知县"><a href="#一-什么是Loki日志系统？爱知县" class="headerlink" title="一. 什么是Loki日志系统？爱知县"></a>一. 什么是Loki日志系统？爱知县</h2><p>Loki是受Prometheus启发由Grafana Labs团队开源的水平可扩展，高度可用的多租户日志聚合系统。 开发语言: Google Go。它的设计具有很高的成本效益，并且易于操作。使用标签来作为索引，而不是对全文进行检索，也就是说，你通过这些标签既可以查询日志的内容也可以查询到监控的数据签，极大地降低了日志索引的存储。系统架构十分简单，由以下3个部分组成 ：</p>
+<ul>
+<li>Loki 是主服务器，负责存储日志和处理查询 ；</li>
+<li>promtail 是代理，负责收集日志并将其发送给 loki；</li>
+<li>Grafana 用于 UI 展示；</li>
+</ul>
+<p>官方文档集合： </p>
+<ul>
+<li><a href="https://link.zhihu.com/?target=https://grafana.com/docs/loki/latest/">https://link.zhihu.com/?target=https%3A//grafana.com/docs/loki/latest/</a></li>
+<li><a href="https://link.zhihu.com/?target=https://github.com/grafana/loki/releases">https://link.zhihu.com/?target=https%3A//github.com/grafana/loki/releases</a></li>
+</ul>
+<h1 id="Loki-Promtail-grafana解决方案-1"><a href="#Loki-Promtail-grafana解决方案-1" class="headerlink" title="Loki-Promtail-grafana解决方案"></a>Loki-Promtail-grafana解决方案</h1><h2 id="一-什么是Loki日志系统？"><a href="#一-什么是Loki日志系统？" class="headerlink" title="一. 什么是Loki日志系统？"></a>一. 什么是Loki日志系统？</h2><p>Loki是受Prometheus启发由Grafana Labs团队开源的水平可扩展，高度可用的多租户日志聚合系统。 开发语言: Google Go。它的设计具有很高的成本效益，并且易于操作。使用标签来作为索引，而不是对全文进行检索，也就是说，你通过这些标签既可以查询日志的内容也可以查询到监控的数据签，极大地降低了日志索引的存储。系统架构十分简单，由以下3个部分组成 ：</p>
+<ul>
+<li>Loki 是主服务器，负责存储日志和处理查询 ；</li>
+<li>promtail 是代理，负责收集日志并将其发送给 loki；</li>
+<li>Grafana 用于 UI 展示；</li>
+</ul>
+<p>官方文档集合： </p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://grafana.com/docs/loki/latest/">https://grafana.com/docs/loki/latest/</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/grafana/loki/releases">https://github.com/grafana/loki/releases</a></li>
+</ul>
+<h1 id="安装部署"><a href="#安装部署" class="headerlink" title="安装部署"></a>安装部署</h1><p>由于当前的docker方式比较方便，就使用此方法部署所有服务，但是所有的数据都会放在我们本地磁盘，它虽然支持外部存储，但是当前使用磁盘的方式是完全能支撑当前业务的</p>
+<h1 id="loki部署"><a href="#loki部署" class="headerlink" title="loki部署"></a>loki部署</h1><ul>
+<li><p>创建数据对接目录，配置文件目录</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs bash"><br>$ <span class="hljs-built_in">mkdir</span> -p /data/loki/config<br>$ vim /data/loki/config/loki-local-config.yaml<br>auth_enabled: <span class="hljs-literal">false</span><br><br>server:<br>  http_listen_port: 3100<br>  grpc_listen_port: 9096<br>  log_level: debug<br>  grpc_server_max_concurrent_streams: 1000<br><br>common:<br>  instance_addr: 127.0.0.1<br>  path_prefix: /tmp/loki<br>  replication_factor: 1<br>  ring:<br>    kvstore:<br>      store: inmemory<br><br>ingester:<br>  lifecycler:<br>    address: 127.0.0.1<br>    ring:<br>      kvstore:<br>        store: inmemory<br>      replication_factor: 1<br>    final_sleep: 0s<br>  chunk_idle_period: 3m<br>  chunk_retain_period: 1m<br><br>schema_config:<br>  configs:<br>    - from: 2020-10-24<br>      store: boltdb-shipper<br>      object_store: filesystem<br>      schema: v11<br>      index:<br>        prefix: index_<br>        period: 24h<br><br>storage_config:<br>  boltdb_shipper:<br>    active_index_directory: /tmp/loki/index<br>    cache_location: /tmp/loki/boltdb-cache<br>  filesystem:<br>    directory: /tmp/loki/chunks<br><br>query_range:<br>  results_cache:<br>    cache:<br>      embedded_cache:<br>        enabled: <span class="hljs-literal">true</span><br>        max_size_mb: 100<br><br>limits_config:<br>  reject_old_samples: <span class="hljs-literal">true</span><br>  reject_old_samples_max_age: 168h<br>  allow_structured_metadata: <span class="hljs-literal">false</span><br><br>ruler:<br>  alertmanager_url: http://alertmanager-server:9093<br><br>frontend:<br>  encoding: protobuf<br><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>启动服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ docker run --name loki -itd -v /data/loki/config:/mnt/config -v  /data/loki/data:/tmp/loki -p 3100:3100 grafana/loki:3.0.0 -config.file=/mnt/config/loki-local-config.yaml<br>$ docker logs -f loki<br><span class="hljs-comment">#日志 根据这个日志来判断是否成功</span><br>a\\x05\\n\\x0e127.0.0.1:909\&quot;<span class="hljs-string">&quot;</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.664293471Z caller=mock.go:196 msg=Get key=collectors/distributor modify_index=359 value=&quot;</span>\&quot;@\\xf0?\\n&gt;\\n\\f57b9c947660b\\x12.\\n\\v127.0.0.1:0\\x10\\xb2\\x99\\x9d\\xb5\\x06\&quot;<span class="hljs-string">&quot;</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.664310571Z caller=mock.go:123 msg=CAS key=collectors/distributor modify_index=359 value=&quot;</span>\&quot;@\\xf0?\\n&gt;\\n\\f57b9c947660b\\x12.\\n\\v127.0.0.1:0\\x10\\xc1\\x99\\x9d\\xb5\\x06\&quot;<span class="hljs-string">&quot;</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.664342389Z caller=mock.go:196 msg=Get key=collectors/ring modify_index=365 value=&quot;</span>\&quot;\\xbe\\x05\\xf4\\xbd\\x02\\n\\xbb\\x05\\n\\f57b9c947660b\\x12\\xaa\\x05\\n\\x0e127.0.0.1:909\&quot;<span class="hljs-string">&quot;</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.664366901Z caller=mock.go:150 msg=Get key=collectors/ring wait_index=365</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.664375842Z caller=mock.go:196 msg=Get key=collectors/distributor modify_index=364 value=&quot;</span>\&quot;@\\xf0?\\n&gt;\\n\\f57b9c947660b\\x12.\\n\\v127.0.0.1:0\\x10\\xc1\\x99\\x9d\\xb5\\x06\&quot;<span class="hljs-string">&quot;</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.66439852Z caller=mock.go:150 msg=Get key=collectors/distributor wait_index=364</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:13.664645622Z caller=checkpoint.go:377 msg=&quot;</span>writing series<span class="hljs-string">&quot; size=&quot;</span>27 kB<span class="hljs-string">&quot;</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566547742Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/compactor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566603604Z caller=mock.go:150 msg=Get key=collectors/compactor wait_index=362</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566617988Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/scheduler</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.56662861Z caller=mock.go:150 msg=Get key=collectors/scheduler wait_index=363</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566633969Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/ring</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566640456Z caller=mock.go:150 msg=Get key=collectors/ring wait_index=365</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566645423Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/distributor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:15.566651684Z caller=mock.go:150 msg=Get key=collectors/distributor wait_index=364</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566642831Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/scheduler</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566688706Z caller=mock.go:150 msg=Get key=collectors/scheduler wait_index=363</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566702546Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/distributor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566710855Z caller=mock.go:150 msg=Get key=collectors/distributor wait_index=364</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566715888Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/ring</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566722651Z caller=mock.go:150 msg=Get key=collectors/ring wait_index=365</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566727563Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/compactor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:16.566734137Z caller=mock.go:150 msg=Get key=collectors/compactor wait_index=362</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567402618Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/distributor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567447831Z caller=mock.go:150 msg=Get key=collectors/distributor wait_index=364</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567462666Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/compactor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567471279Z caller=mock.go:150 msg=Get key=collectors/compactor wait_index=362</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.56747655Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/ring</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567485535Z caller=mock.go:150 msg=Get key=collectors/ring wait_index=365</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567490342Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/scheduler</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:17.567498805Z caller=mock.go:150 msg=Get key=collectors/scheduler wait_index=363</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568446535Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/scheduler</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568491873Z caller=mock.go:150 msg=Get key=collectors/scheduler wait_index=363</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568505616Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/compactor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568513289Z caller=mock.go:150 msg=Get key=collectors/compactor wait_index=362</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568519284Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/distributor</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568530122Z caller=mock.go:150 msg=Get key=collectors/distributor wait_index=364</span><br><span class="hljs-string">level=debug ts=2024-07-29T08:03:18.568534887Z caller=mock.go:186 msg=&quot;</span>Get - deadline exceeded<span class="hljs-string">&quot; key=collectors/ring</span><br><span class="hljs-string"></span><br></code></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="Promtail部署"><a href="#Promtail部署" class="headerlink" title="Promtail部署"></a>Promtail部署</h1><ul>
+<li><p>创建数据对接目录，配置文件创建</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ <span class="hljs-built_in">mkdir</span> -p /data/promtail/log<br>$ <span class="hljs-built_in">mkdir</span> -p /data/promtail/config<br><br><span class="hljs-comment"># 配置文件编写 </span><br>$ vim /data/promtail/config/promtail-config.yaml<br>server:<br>  http_listen_port: 9080<br>  grpc_listen_port: 0<br><br>positions:<br>  filename: /tmp/positions.yaml<br><br>clients:<br>  - url: http://loki-server:3100/loki/api/v1/push<br><br>scrape_configs:<br>- job_name: system<br>  static_configs:<br>  - targets:<br>      - localhost<br>    labels:<br>      job: varlogs<br>      __path__: /var/log/*<span class="hljs-built_in">log</span><br><br></code></pre></td></tr></table></figure></li>
+<li><p>配置说明</p>
+<figure class="highlight nestedtext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs nestedtext"><span class="hljs-attribute">server</span><span class="hljs-punctuation">:</span> <span class="hljs-string">loki服务端信息</span><br>  <span class="hljs-attribute">http_listen_port</span><span class="hljs-punctuation">:</span> <span class="hljs-string">9080</span><br>  <span class="hljs-attribute">grpc_listen_port</span><span class="hljs-punctuation">:</span> <span class="hljs-string">0</span><br><br><span class="hljs-attribute">positions</span><span class="hljs-punctuation">:</span> <span class="hljs-string">日志位点配置</span><br>  <span class="hljs-attribute">filename</span><span class="hljs-punctuation">:</span> <span class="hljs-string">/tmp/positions.yaml</span><br><br><span class="hljs-attribute">clients</span><span class="hljs-punctuation">:</span> <span class="hljs-string">连接推送地址</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">url: http://43.138.148.108:3100/loki/api/v1/push</span><br><br><span class="hljs-attribute">scrape_configs</span><span class="hljs-punctuation">:</span> <span class="hljs-string">配置日志目标</span><br><span class="hljs-bullet">-</span> <span class="hljs-string">job_name: system job名称</span><br>  <span class="hljs-attribute">static_configs</span><span class="hljs-punctuation">:</span> <span class="hljs-string">静态配置</span><br>  <span class="hljs-bullet">-</span> <span class="hljs-string">targets: ，目标 这里是ip地址 </span><br>      <span class="hljs-bullet">-</span> <span class="hljs-string">localhost</span><br>    <span class="hljs-attribute">labels</span><span class="hljs-punctuation">:</span><br>      <span class="hljs-attribute">job</span><span class="hljs-punctuation">:</span> <span class="hljs-string">varlogs  任务具体名称，这里可以在grafana中搜索的key</span><br>      <span class="hljs-attribute">__path__</span><span class="hljs-punctuation">:</span> <span class="hljs-string">/var/log/*log 采集日志路径 如果是容器安装 则需要这个日志目录映射到这里去</span><br></code></pre></td></tr></table></figure>
+
+</li>
+<li><p>启动服务</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs bash">$ docker run --name promtail -itd -v /data/promtail/config:/mnt/promtail/config -v /var/log:/var/log --<span class="hljs-built_in">link</span> loki grafana/promtail:3.0.0 -config.file=/mnt/promtail/config/promtail-config.yaml<br>$ docker logs -f promaail<br>level=info ts=2024-07-29T07:42:18.381823421Z <span class="hljs-built_in">caller</span>=main.go:173 msg=<span class="hljs-string">&quot;Starting Promtail&quot;</span> version=<span class="hljs-string">&quot;(version=3.0.0, branch=HEAD, revision=b4f7181c7a)&quot;</span><br>level=warn ts=2024-07-29T07:42:18.381894145Z <span class="hljs-built_in">caller</span>=promtail.go:263 msg=<span class="hljs-string">&quot;enable watchConfig&quot;</span><br>level=info ts=2024-07-29T07:42:23.38218856Z <span class="hljs-built_in">caller</span>=filetargetmanager.go:372 msg=<span class="hljs-string">&quot;Adding target&quot;</span> key=<span class="hljs-string">&quot;/var/log/*log:&#123;job=\&quot;varlogs\&quot;&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.382560226Z <span class="hljs-built_in">caller</span>=filetarget.go:313 msg=<span class="hljs-string">&quot;watching new directory&quot;</span> directory=/var/log<br>level=info ts=2024-07-29T07:42:23.382660349Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/alternatives.log<br>ts=2024-07-29T07:42:23.382789034Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/alternatives.log - &amp;&#123;Offset:523 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.382837357Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/boot.log<br>ts=2024-07-29T07:42:23.382876226Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/apport.log - &amp;&#123;Offset:0 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.382900218Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/apport.log<br>ts=2024-07-29T07:42:23.382948055Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/auth.log - &amp;&#123;Offset:928671 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.3829814Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/auth.log<br>ts=2024-07-29T07:42:23.383047145Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/boot.log - &amp;&#123;Offset:0 Whence:0&#125;&quot;</span><br>ts=2024-07-29T07:42:23.383182513Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/bootstrap.log - &amp;&#123;Offset:1 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.383209434Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/bootstrap.log<br>ts=2024-07-29T07:42:23.383246407Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/cloud-init-output.log - &amp;&#123;Offset:0 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.383266454Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/cloud-init-output.log<br>ts=2024-07-29T07:42:23.383313745Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/cloud-init.log - &amp;&#123;Offset:0 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.383338109Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/cloud-init.log<br>ts=2024-07-29T07:42:23.383413506Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/dpkg.log - &amp;&#123;Offset:19158 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.383450172Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/dpkg.log<br>ts=2024-07-29T07:42:23.383484052Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/faillog - &amp;&#123;Offset:1 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.383508679Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/faillog<br>level=info ts=2024-07-29T07:42:23.383532327Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/kern.log<br>ts=2024-07-29T07:42:23.383540774Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/kern.log - &amp;&#123;Offset:24219 Whence:0&#125;&quot;</span><br>ts=2024-07-29T07:42:23.383580412Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/lastlog - &amp;&#123;Offset:1 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.383672283Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/qcloud_action.log<br>ts=2024-07-29T07:42:23.383726678Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/syslog - &amp;&#123;Offset:910823 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.384220433Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/lastlog<br>ts=2024-07-29T07:42:23.384256885Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/qcloud_action.log - &amp;&#123;Offset:1 Whence:0&#125;&quot;</span><br>ts=2024-07-29T07:42:23.384323099Z <span class="hljs-built_in">caller</span>=log.go:168 level=info msg=<span class="hljs-string">&quot;Seeked /var/log/ubuntu-advantage.log - &amp;&#123;Offset:10705 Whence:0&#125;&quot;</span><br>level=info ts=2024-07-29T07:42:23.384358424Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/syslog<br>level=info ts=2024-07-29T07:42:23.384368549Z <span class="hljs-built_in">caller</span>=tailer.go:147 component=tailer msg=<span class="hljs-string">&quot;tail routine: started&quot;</span> path=/var/log/ubuntu-advantage.log<br><br></code></pre></td></tr></table></figure></li>
+</ul>
+<p>目前看日志都正常，到此都是顺利的，接下来我们去配置看板即可</p>
+<h1 id="grafana配置"><a href="#grafana配置" class="headerlink" title="grafana配置"></a>grafana配置</h1><p>这里部署比较简单，搭建根据之前的prometheus文件的grafana参考即可</p>
+<ul>
+<li><p><a target="_blank" rel="noopener" href="https://vlog.aiwanfps.com/2024/07/25/04-grafana%E9%83%A8%E7%BD%B2%E5%AF%B9%E6%8E%A5/">https://vlog.aiwanfps.com/2024/07/25/04-grafana%E9%83%A8%E7%BD%B2%E5%AF%B9%E6%8E%A5/</a></p>
+</li>
+<li><p>添加数据源<br>  grafana 中添加数据源，选择loki</p>
+</li>
+<li><p>添加面板<br>  导入面板 DI为：13639</p>
+</li>
+<li><p>查看日志信息</p>
+</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" class="category-chain-item">日志系统</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%8E%9F%E5%88%9B/" class="print-no-link">#原创</a>
+      
+        <a href="/tags/%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" class="print-no-link">#日志系统</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>03-Loki-Promtail-grafana解决方案</div>
+      <div>https://vlog.pubyg.com/2024/07/27/03-Loki-Promtail-grafana解决方案/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>雪落星辰</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年7月27日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/07/27/04-%E6%9C%8D%E5%8A%A1%E6%97%A5%E5%BF%97%E6%A0%87%E5%87%86%E5%8C%96%E5%BB%BA%E8%AE%AE%E5%92%8C%E5%B8%B8%E8%A7%81%E6%96%B9%E6%A1%88/" title="04-服务日志标准化建议和常见方案">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">04-服务日志标准化建议和常见方案</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/27/02-EFK%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" title="02-EFK解决方案">
+                        <span class="hidden-mobile">02-EFK解决方案</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    
+      <script type="text/javascript">
+        var disqus_config = function() {
+          this.page.url = 'https://vlog.pubyg.com/2024/07/27/03-Loki-Promtail-grafana%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/';
+          this.page.identifier = '/2024/07/27/03-Loki-Promtail-grafana%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/';
+        };
+        Fluid.utils.loadComments('#disqus_thread', function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//' + 'fluid' + '.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', new Date());
+          (d.head || d.body).appendChild(s);
+        });
+      </script>
+    
+    <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
