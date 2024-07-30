@@ -1,0 +1,886 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=light>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="雪落星辰">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="工作需要了解学习 什么是声纹识别？通常来说，声纹就是一个人的声音，声音里面包含的特征，就是声纹，和指纹类似，知识一个属于声音，一个属于具像化实体； 然而在系统中的实现，是分为2个步骤的  声音特征提取 声音特征匹配  实现技术浅谈 声音特征提取通过对音频信号的处理，提取处能够反映说话者特征的声纹特征， 据我目前了解，可以使用梅尔平路到谱系数，英文简称： MFCC，还有线性预测编码： LPC  声">
+<meta property="og:type" content="article">
+<meta property="og:title" content="01-了解声纹识别">
+<meta property="og:url" content="https://vlog.pubyg.com/2024/07/30/01-%E4%BA%86%E8%A7%A3%E5%A3%B0%E7%BA%B9%E8%AF%86%E5%88%AB/index.html">
+<meta property="og:site_name" content="雪落星辰">
+<meta property="og:description" content="工作需要了解学习 什么是声纹识别？通常来说，声纹就是一个人的声音，声音里面包含的特征，就是声纹，和指纹类似，知识一个属于声音，一个属于具像化实体； 然而在系统中的实现，是分为2个步骤的  声音特征提取 声音特征匹配  实现技术浅谈 声音特征提取通过对音频信号的处理，提取处能够反映说话者特征的声纹特征， 据我目前了解，可以使用梅尔平路到谱系数，英文简称： MFCC，还有线性预测编码： LPC  声">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-07-30T07:44:25.000Z">
+<meta property="article:modified_time" content="2024-07-30T10:32:12.755Z">
+<meta property="article:author" content="雪落星辰">
+<meta property="article:tag" content="人工智能">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>01-了解声纹识别 - 雪落星辰</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"vlog.pubyg.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":"fea4bef4cfe5dcd81d674d2d3a69ea21","google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+    <!-- Baidu Analytics -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?fea4bef4cfe5dcd81d674d2d3a69ea21";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>雪落星辰</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="01-了解声纹识别"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-30 15:44" pubdate>
+          2024年7月30日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          16 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">01-了解声纹识别</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <hr>
+<p><strong>工作需要了解学习</strong></p>
+<h2 id="什么是声纹识别？"><a href="#什么是声纹识别？" class="headerlink" title="什么是声纹识别？"></a>什么是声纹识别？</h2><p>通常来说，声纹就是一个人的声音，声音里面包含的特征，就是声纹，和指纹类似，知识一个属于声音，一个属于具像化实体； 然而在系统中的实现，是分为2个步骤的</p>
+<ol>
+<li>声音特征提取</li>
+<li>声音特征匹配</li>
+</ol>
+<h2 id="实现技术浅谈"><a href="#实现技术浅谈" class="headerlink" title="实现技术浅谈"></a>实现技术浅谈</h2><ul>
+<li><p>声音特征提取<br>通过对音频信号的处理，提取处能够反映说话者特征的声纹特征， 据我目前了解，可以使用梅尔平路到谱系数，英文简称： MFCC，还有线性预测编码： LPC</p>
+</li>
+<li><p>声纹匹配<br>从特征处拿到数据后与数据库中的声纹模板进行比较，计算相似度就可以确定说话者的身份。</p>
+</li>
+</ul>
+<p>技术框架是基于人工智能体系路线，会使用到相对复杂的处理算法，大概如下</p>
+<ul>
+<li><p>音频数据采集</p>
+</li>
+<li><p>预处理</p>
+</li>
+<li><p>特征提取</p>
+</li>
+<li><p>模型训练和匹配<br>主要技术难点在，信号处理，和机器学习上！</p>
+</li>
+<li><p>比如使用python的pyaudio库实现声音数据采集，然后交给声纹接口就得到一个声纹信息，此时拿到声纹信息去数据库进行匹配就可以得到判断（声音属于什么类型&#x2F;声音属于谁的）</p>
+</li>
+</ul>
+<h3 id="特征提取"><a href="#特征提取" class="headerlink" title="特征提取"></a>特征提取</h3><p>特征提取是声纹识别的核心步骤，从音频信号中提取出能够反映说话者特征的参数。</p>
+<p>常用方法：</p>
+<ul>
+<li>梅尔频率倒谱系数（MFCC）：最常用的声纹特征提取方法，反映了音频信号的频率特性。</li>
+<li>线性预测编码（LPC）：通过对音频信号进行线性预测，提取其特征。</li>
+</ul>
+<p>步骤：</p>
+<ul>
+<li>将音频信号分帧。</li>
+<li>对每一帧进行短时傅里叶变换（STFT）。</li>
+<li>计算MFCC或LPC特征。</li>
+</ul>
+<h3 id="声纹匹配"><a href="#声纹匹配" class="headerlink" title="声纹匹配"></a>声纹匹配</h3><p>这里一般是一个模型，或者算法来集合来实现，是此技术的核心点</p>
+<p>常用模型：</p>
+<ul>
+<li>高斯混合模型（GMM）：传统声纹识别中常用的模型。</li>
+<li>深度学习模型：如卷积神经网络（CNN）和循环神经网络（RNN），可以获得更高的识别精度。</li>
+</ul>
+<p>步骤：</p>
+<ul>
+<li>准备训练数据集，包括多位说话者的语音样本。</li>
+<li>使用提取的声纹特征训练模型。</li>
+</ul>
+<h2 id="开源解决方案"><a href="#开源解决方案" class="headerlink" title="开源解决方案"></a>开源解决方案</h2><p>支持多并发处理的声纹识别开源解决方案需要具备高效的处理能力和良好的可扩展性。以下是几种适合多并发处理的开源解决方案：</p>
+<h3 id="1-Kaldi"><a href="#1-Kaldi" class="headerlink" title="1. Kaldi"></a>1. <strong>Kaldi</strong></h3><p>Kaldi 是一个强大的语音识别工具包，能够高效处理大量并发请求，适用于大规模语音数据处理。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>高度可定制化。</li>
+<li>提供丰富的功能，适合研究和开发。</li>
+</ul>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>社区活跃，文档详细。</li>
+<li>支持大规模并行处理。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>学习曲线较陡，配置复杂。</li>
+</ul>
+<p><strong>使用方法</strong>：</p>
+<ul>
+<li>使用Kaldi进行声纹识别可以通过编写脚本来实现并行处理。Kaldi的官方文档中有详细的教程和示例。</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs sh">git <span class="hljs-built_in">clone</span> https://github.com/kaldi-asr/kaldi.git<br><span class="hljs-built_in">cd</span> kaldi/tools<br>make<br><span class="hljs-built_in">cd</span> ../src<br>./configure<br>make clean -j &amp;&amp; make depend -j &amp;&amp; make -j<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-VoxCeleb"><a href="#2-VoxCeleb" class="headerlink" title="2. VoxCeleb"></a>2. <strong>VoxCeleb</strong></h3><p>VoxCeleb 提供了大规模的声纹数据集和多个基于深度学习的模型，适合训练和评估深度学习声纹识别模型。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>大规模数据集和深度学习模型。</li>
+<li>提供预训练模型和数据集下载。</li>
+</ul>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>数据集丰富，适合深度学习训练。</li>
+<li>提供多个预训练模型。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>需要较多计算资源进行训练。</li>
+</ul>
+<p><strong>使用方法</strong>：</p>
+<ul>
+<li>VoxCeleb 可以与 TensorFlow 或 PyTorch 集成，使用分布式训练和推理框架进行并发处理。</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-comment"># 示例代码</span><br><span class="hljs-keyword">import</span> torch<br><span class="hljs-keyword">from</span> SpeakerNet <span class="hljs-keyword">import</span> SpeakerNet, train<br><br><span class="hljs-comment"># 设置模型和数据集路径</span><br>model = SpeakerNet(<span class="hljs-string">&#x27;ResNetSE34L&#x27;</span>, device=<span class="hljs-string">&#x27;cuda&#x27;</span>)<br>train_dataset_path = <span class="hljs-string">&#x27;path/to/train/dataset&#x27;</span><br>test_dataset_path = <span class="hljs-string">&#x27;path/to/test/dataset&#x27;</span><br><br><span class="hljs-comment"># 训练模型</span><br>train(model, train_dataset_path, epochs=<span class="hljs-number">10</span>)<br><br><span class="hljs-comment"># 并发推理示例</span><br><span class="hljs-keyword">import</span> threading<br><br><span class="hljs-keyword">def</span> <span class="hljs-title function_">recognize_speaker</span>(<span class="hljs-params">features</span>):<br>    predicted_label = model(features.cuda())<br>    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;匹配到的说话者ID: <span class="hljs-subst">&#123;predicted_label.argmax().item()&#125;</span>&quot;</span>)<br><br><span class="hljs-comment"># 假设有多个特征需要并发处理</span><br>features_list = [torch.rand(<span class="hljs-number">1</span>, <span class="hljs-number">13</span>) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">10</span>)]<br>threads = []<br><span class="hljs-keyword">for</span> features <span class="hljs-keyword">in</span> features_list:<br>    thread = threading.Thread(target=recognize_speaker, args=(features,))<br>    threads.append(thread)<br>    thread.start()<br><br><span class="hljs-keyword">for</span> thread <span class="hljs-keyword">in</span> threads:<br>    thread.join()<br></code></pre></td></tr></table></figure>
+
+<h3 id="3-TensorFlow-Serving"><a href="#3-TensorFlow-Serving" class="headerlink" title="3. TensorFlow Serving"></a>3. <strong>TensorFlow Serving</strong></h3><p>TensorFlow Serving 是一个灵活的、高性能的用于机器学习模型推理的开源库，可以高效地进行多并发请求处理。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>支持模型的热部署。</li>
+<li>提供高吞吐量和低延迟的推理服务。</li>
+</ul>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>高性能，支持大规模并发请求。</li>
+<li>易于与 TensorFlow 模型集成。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>需要部署和维护 TensorFlow Serving 服务器。</li>
+</ul>
+<p><strong>使用方法</strong>：</p>
+<ul>
+<li>部署 TensorFlow Serving 并使用预训练的声纹识别模型进行并发处理。</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs sh"><span class="hljs-comment"># 安装 TensorFlow Serving</span><br>docker pull tensorflow/serving<br><br><span class="hljs-comment"># 运行 TensorFlow Serving</span><br>docker run -p 8501:8501 --name=tf_serving \<br>  --mount <span class="hljs-built_in">type</span>=<span class="hljs-built_in">bind</span>,<span class="hljs-built_in">source</span>=/path/to/your/model,destination=/models/model \<br>  -e MODEL_NAME=model -t tensorflow/serving<br><br><span class="hljs-comment"># 客户端代码进行并发请求</span><br>import requests<br>import json<br>import threading<br><br>def send_request(features):<br>    url = <span class="hljs-string">&#x27;http://localhost:8501/v1/models/model:predict&#x27;</span><br>    data = json.dumps(&#123;<span class="hljs-string">&quot;instances&quot;</span>: features.tolist()&#125;)<br>    headers = &#123;<span class="hljs-string">&quot;content-type&quot;</span>: <span class="hljs-string">&quot;application/json&quot;</span>&#125;<br>    response = requests.post(url, data=data, headers=headers)<br>    <span class="hljs-built_in">print</span>(response.json())<br><br><span class="hljs-comment"># 假设有多个特征需要并发处理</span><br>features_list = [np.random.rand(1, 13) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> range(10)]<br>threads = []<br><span class="hljs-keyword">for</span> features <span class="hljs-keyword">in</span> features_list:<br>    thread = threading.Thread(target=send_request, args=(features,))<br>    threads.append(thread)<br>    thread.start()<br><br><span class="hljs-keyword">for</span> thread <span class="hljs-keyword">in</span> threads:<br>    thread.join()<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-PyTorch-with-TorchServe"><a href="#4-PyTorch-with-TorchServe" class="headerlink" title="4. PyTorch with TorchServe"></a>4. <strong>PyTorch with TorchServe</strong></h3><p>TorchServe 是一个灵活和易于使用的 PyTorch 模型推理服务库，适合处理大规模并发请求。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>支持多种模型格式。</li>
+<li>提供自动扩展和负载均衡。</li>
+</ul>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>高性能，适合大规模并发处理。</li>
+<li>易于与 PyTorch 模型集成。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>需要部署和维护 TorchServe 服务器。</li>
+</ul>
+<p><strong>使用方法</strong>：</p>
+<ul>
+<li>部署 TorchServe 并使用预训练的声纹识别模型进行并发处理。</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs sh"><span class="hljs-comment"># 安装 TorchServe</span><br>pip install torchserve torch-model-archiver<br><br><span class="hljs-comment"># 打包并部署模型</span><br>torch-model-archiver --model-name speaker-recognition --version 1.0 --model-file model.py --serialized-file model.pth --handler handler.py<br><span class="hljs-built_in">mkdir</span> model_store<br><span class="hljs-built_in">mv</span> speaker-recognition.mar model_store/<br>torchserve --start --model-store model_store --models speaker-recognition=speaker-recognition.mar<br><br><span class="hljs-comment"># 客户端代码进行并发请求</span><br>import requests<br>import json<br>import threading<br><br>def send_request(features):<br>    url = <span class="hljs-string">&#x27;http://localhost:8080/predictions/speaker-recognition&#x27;</span><br>    data = json.dumps(features.tolist())<br>    headers = &#123;<span class="hljs-string">&quot;content-type&quot;</span>: <span class="hljs-string">&quot;application/json&quot;</span>&#125;<br>    response = requests.post(url, data=data, headers=headers)<br>    <span class="hljs-built_in">print</span>(response.json())<br><br><span class="hljs-comment"># 假设有多个特征需要并发处理</span><br>features_list = [np.random.rand(1, 13) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> range(10)]<br>threads = []<br><span class="hljs-keyword">for</span> features <span class="hljs-keyword">in</span> features_list:<br>    thread = threading.Thread(target=send_request, args=(features,))<br>    threads.append(thread)<br>    thread.start()<br><br><span class="hljs-keyword">for</span> thread <span class="hljs-keyword">in</span> threads:<br>    thread.join()<br></code></pre></td></tr></table></figure>
+
+<h3 id="5-DeepSpeech"><a href="#5-DeepSpeech" class="headerlink" title="5. DeepSpeech"></a>5. <strong>DeepSpeech</strong></h3><p>DeepSpeech 是 Mozilla 开发的一个开源语音识别系统，基于深度学习，支持并发请求处理。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>高性能的语音识别系统。</li>
+<li>提供预训练模型，易于部署。</li>
+</ul>
+<p><strong>优点</strong>：</p>
+<ul>
+<li>社区支持良好，易于使用。</li>
+<li>适用于实时语音识别和大规模并发处理。</li>
+</ul>
+<p><strong>缺点</strong>：</p>
+<ul>
+<li>主要用于语音识别，但可以扩展用于声纹识别。</li>
+</ul>
+<p><strong>使用方法</strong>：</p>
+<ul>
+<li>部署 DeepSpeech 并使用预训练的模型进行并发处理。</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs sh"><span class="hljs-comment"># 安装 DeepSpeech</span><br>pip install deepspeech<br><br><span class="hljs-comment"># 使用预训练模型进行推理</span><br>import deepspeech<br>import numpy as np<br>import threading<br><br>model_file_path = <span class="hljs-string">&#x27;deepspeech-0.9.3-models.pbmm&#x27;</span><br>model = deepspeech.Model(model_file_path)<br><br>def recognize_speech(audio_data):<br>    text = model.stt(audio_data)<br>    <span class="hljs-built_in">print</span>(f<span class="hljs-string">&quot;识别结果: &#123;text&#125;&quot;</span>)<br><br><span class="hljs-comment"># 假设有多个音频数据需要并发处理</span><br>audio_data_list = [np.random.rand(16000) <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> range(10)]<br>threads = []<br><span class="hljs-keyword">for</span> audio_data <span class="hljs-keyword">in</span> audio_data_list:<br>    thread = threading.Thread(target=recognize_speech, args=(audio_data,))<br>    threads.append(thread)<br>    thread.start()<br><br><span class="hljs-keyword">for</span> thread <span class="hljs-keyword">in</span> threads:<br>    thread.join()<br></code></pre></td></tr></table></figure>
+
+<p>这些开源解决方案提供了高效的并发处理能力，适用于不同的应用场景和需求。你可以根据具体需求选择合适的解决方案进行开发和部署。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="category-chain-item">人工智能</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/%E5%A3%B0%E7%BA%B9%E8%AF%86%E5%88%AB/" class="category-chain-item">声纹识别</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/" class="print-no-link">#人工智能</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>01-了解声纹识别</div>
+      <div>https://vlog.pubyg.com/2024/07/30/01-了解声纹识别/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>雪落星辰</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年7月30日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/27/04-%E6%9C%8D%E5%8A%A1%E6%97%A5%E5%BF%97%E6%A0%87%E5%87%86%E5%8C%96%E5%BB%BA%E8%AE%AE%E5%92%8C%E5%B8%B8%E8%A7%81%E6%96%B9%E6%A1%88/" title="04-服务日志标准化建议和常见方案">
+                        <span class="hidden-mobile">04-服务日志标准化建议和常见方案</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div class="disqus" style="width:100%">
+    <div id="disqus_thread"></div>
+    
+      <script type="text/javascript">
+        var disqus_config = function() {
+          this.page.url = 'https://vlog.pubyg.com/2024/07/30/01-%E4%BA%86%E8%A7%A3%E5%A3%B0%E7%BA%B9%E8%AF%86%E5%88%AB/';
+          this.page.identifier = '/2024/07/30/01-%E4%BA%86%E8%A7%A3%E5%A3%B0%E7%BA%B9%E8%AF%86%E5%88%AB/';
+        };
+        Fluid.utils.loadComments('#disqus_thread', function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//' + 'fluid' + '.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', new Date());
+          (d.head || d.body).appendChild(s);
+        });
+      </script>
+    
+    <noscript>Please enable JavaScript to view the comments</noscript>
+  </div>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
